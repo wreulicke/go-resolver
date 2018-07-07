@@ -9,8 +9,8 @@ type httpFsResolver struct {
 	http.FileSystem
 }
 
-// NewHttpFsResolver provides resolver from net/http file system
-func NewHttpFsResolver(httpFs http.FileSystem) Resolver {
+// NewHTTPFsResolver provides resolver from net/http file system
+func NewHTTPFsResolver(httpFs http.FileSystem) Resolver {
 	return &httpFsResolver{
 		FileSystem: httpFs,
 	}

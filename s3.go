@@ -16,7 +16,7 @@ type s3Resolver struct {
 	basekey string
 }
 
-// NewHttpFsResolver provides resolver from net/http file system
+// NewS3Resolver provides resolver from s3
 func NewS3Resolver(s3API s3iface.S3API, bucket string) Resolver {
 	return &s3Resolver{
 		S3API:   s3API,
@@ -25,6 +25,7 @@ func NewS3Resolver(s3API s3iface.S3API, bucket string) Resolver {
 	}
 }
 
+// NewS3ResolverWithBaseKey provides resolver from s3 with basekey
 func NewS3ResolverWithBaseKey(s3API s3iface.S3API, bucket string, basekey string) Resolver {
 	if strings.HasPrefix(basekey, "/") {
 		basekey = basekey[1:]
