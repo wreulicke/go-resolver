@@ -4,7 +4,8 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
+
+	homedir "github.com/mitchellh/go-homedir"
 )
 
 type osFsResolver struct {
@@ -13,16 +14,16 @@ type osFsResolver struct {
 
 // NewOsFsResolver provides resolver from Os file system
 func NewOsFsResolver(basepath string) (Resolver, error) {
-	if !strings.HasPrefix(basepath, "/") {
-		ex, err := os.Executable()
-		if err != nil {
-			return nil, err
-		}
-		exPath := filepath.Dir(ex)
-		basepath = filepath.Join(exPath, basepath)
+	p, err := homedir.Expand(basepath)
+	if err != nil {
+		return nil, err
+	}
+	p, err = filepath.Abs(p)
+	if err != nil {
+		return nil, err
 	}
 	return &osFsResolver{
-		basepath: basepath,
+		basepath: p,
 	}, nil
 }
 

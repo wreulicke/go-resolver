@@ -3,6 +3,8 @@ package resolver
 import (
 	"errors"
 	"io"
+	"io/ioutil"
+	"path"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -15,10 +17,6 @@ type ssmResolver struct {
 	ssmiface.SSMAPI
 	prefix         string
 	withDecription *bool
-}
-
-type dummyReadCloser struct {
-	io.Reader
 }
 
 // NewSSMResolver provides resolver from SSM
@@ -37,9 +35,10 @@ func NewSSMResolverWithPrefix(ssmAPI ssmiface.SSMAPI, prefix string) Resolver {
 	}
 }
 
-func (resolver *ssmResolver) Resolve(path string) (io.ReadCloser, error) {
+func (resolver *ssmResolver) Resolve(p string) (io.ReadCloser, error) {
+	p = path.Join(resolver.prefix, p)
 	r := &ssm.GetParameterInput{
-		Name: aws.String(resolver.prefix + path),
+		Name: aws.String(p),
 	}
 	res, err := resolver.GetParameter(r)
 	if err != nil {
@@ -50,15 +49,5 @@ func (resolver *ssmResolver) Resolve(path string) (io.ReadCloser, error) {
 	} else if res.Parameter.Name == nil {
 		return nil, errors.New("parameter " + *r.Name + "is not found")
 	}
-	return newDummyReadCloser(*res.Parameter.Value), nil
-}
-
-func newDummyReadCloser(v string) io.ReadCloser {
-	return &dummyReadCloser{
-		Reader: strings.NewReader(v),
-	}
-}
-
-func (*dummyReadCloser) Close() error {
-	return nil
+	return ioutil.NopCloser(strings.NewReader(*res.Parameter.Value)), nil
 }

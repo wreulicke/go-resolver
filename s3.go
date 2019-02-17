@@ -2,6 +2,7 @@ package resolver
 
 import (
 	"io"
+	"path"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -27,7 +28,7 @@ func NewS3Resolver(s3API s3iface.S3API, bucket string) Resolver {
 
 // NewS3ResolverWithBaseKey provides resolver from s3 with basekey
 func NewS3ResolverWithBaseKey(s3API s3iface.S3API, bucket string, basekey string) Resolver {
-	if strings.HasPrefix(basekey, "/") {
+	if basekey[0] == '/' {
 		basekey = basekey[1:]
 	}
 	if basekey != "" && !strings.HasSuffix(basekey, "/") {
@@ -40,17 +41,13 @@ func NewS3ResolverWithBaseKey(s3API s3iface.S3API, bucket string, basekey string
 	}
 }
 
-func (resolver *s3Resolver) Resolve(path string) (io.ReadCloser, error) {
+func (resolver *s3Resolver) Resolve(p string) (io.ReadCloser, error) {
 	base := resolver.basekey
-	if strings.HasPrefix(path, "/") {
-		path = base + path[1:]
-	} else {
-		path = base + path
-	}
+	p = path.Join(base, p)
 
 	req := &s3.GetObjectInput{
 		Bucket: aws.String(resolver.bucket),
-		Key:    aws.String(path),
+		Key:    aws.String(p),
 	}
 	res, err := resolver.GetObject(req)
 	if err != nil {
